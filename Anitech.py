@@ -29,12 +29,7 @@ def query_data_day(start_date_query):
                 '''
     read_data = pd.read_sql(sql_code,con=engine)
     read_data['insert_date'] = pd.to_datetime(read_data['insert_date'])
-    read_data['hour'] = read_data['insert_date'].dt.hour
-    dataframe = read_data.groupby(by='hour').mean().reset_index()
-    coltorow = dataframe.melt(id_vars=["hour"], 
-            var_name="category", 
-            value_name="value")
-    return coltorow
+    return read_data
 
 def plot_data(df, lowerLimit, upperLimit):
     # Create a selection that chooses the nearest point & selects based on x-value
@@ -86,39 +81,43 @@ def plot_data(df, lowerLimit, upperLimit):
 def main():
     st.title('AniTech SQSS Data Plot')
 
-    start_date = st.date_input("Date Filter", datetime.today())
-    print(start_date)
     st.text("")
 
-    if st.button('Query Data'):
-        dataframe = query_data_day(start_date)
+    today_date = datetime.today().strftime('%Y-%m-%d')
+    read_data = query_data_day(today_date)
+    read_data['hour'] = read_data['insert_date'].dt.hour
+    grouped_df = read_data.groupby(by='hour').mean().reset_index()
+    dataframe = grouped_df.melt(id_vars=["hour"], 
+            var_name="category", 
+            value_name="value")
 
-        st.text('Temperature in °C and Humidity in %%')
-        df_temp = dataframe[dataframe['category'].isin(['temp','humi'])]
-        st.altair_chart(plot_data(df_temp,0,100), use_container_width=True)
+    
+    st.subheader('Latest Data:   ' + str(read_data['insert_date'].iloc[0]))
 
-        st.text('Carbon Dioxide in ppm')
-        df_co2x = dataframe[dataframe['category'].isin(['co2x'])]
-        st.altair_chart(plot_data(df_co2x,0,2000), use_container_width=True)
+    temp_str = str(read_data['temp'].iloc[0])[:5]
+    humi_str = str(read_data['humi'].iloc[0])[:5]
+    co2x_str = str(read_data['co2x'].iloc[0])[:6]
+    o2xx_str = str(read_data['o2xx'].iloc[0])[:5]
 
-        st.text('Oxygen in % vol')
-        df_o2xx = dataframe[dataframe['category'].isin(['o2xx'])]
-        st.altair_chart(plot_data(df_o2xx,20,25), use_container_width=True)
-    else:
-        today_date = datetime.today().strftime('%Y-%m-%d')
-        dataframe = query_data_day(today_date)
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Temperature in °C", temp_str)
+    col2.metric("Humidity in %%", humi_str)
+    col3.metric("CO2 in ppm", co2x_str)
+    col4.metric("O2 in % vol", o2xx_str)
 
-        st.text('Temperature in °C and Humidity in %%')
-        df_temp = dataframe[dataframe['category'].isin(['temp','humi'])]
-        st.altair_chart(plot_data(df_temp,0,100), use_container_width=True)
+    st.header(today_date)
 
-        st.text('Carbon Dioxide in ppm')
-        df_co2x = dataframe[dataframe['category'].isin(['co2x'])]
-        st.altair_chart(plot_data(df_co2x,0,2000), use_container_width=True)
+    st.text('Temperature in °C and Humidity in %%')
+    df_temp = dataframe[dataframe['category'].isin(['temp','humi'])]
+    st.altair_chart(plot_data(df_temp,0,100), use_container_width=True)
 
-        st.text('Oxygen in % vol')
-        df_o2xx = dataframe[dataframe['category'].isin(['o2xx'])]
-        st.altair_chart(plot_data(df_o2xx,20,25), use_container_width=True)
+    st.text('Carbon Dioxide in ppm')
+    df_co2x = dataframe[dataframe['category'].isin(['co2x'])]
+    st.altair_chart(plot_data(df_co2x,0,2000), use_container_width=True)
+
+    st.text('Oxygen in % vol')
+    df_o2xx = dataframe[dataframe['category'].isin(['o2xx'])]
+    st.altair_chart(plot_data(df_o2xx,20,25), use_container_width=True)
 
 if __name__ == "__main__":
     main()
