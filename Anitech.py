@@ -8,7 +8,7 @@ import altair as alt
 import psycopg2
 from sqlalchemy import create_engine
 
-url = 'postgresql+psycopg2://dashboard_select:AVNS_hf_HkycGlpPX1osvfYX@db-postgresql-sgp1-32435-do-user-12241536-0.b.db.ondigitalocean.com:25060/client_1'
+url = 'postgresql+psycopg2://dashboard_select:AVNS_hf_HkycGlpPX1osvfYX@db-postgresql-sgp1-32435-do-user-12241536-0.b.db.ondigitalocean.com:25060/mkp_data'
 engine = create_engine(url)
 
 
@@ -23,7 +23,7 @@ def query_data_day(start_date_query):
                     humi,
                     sensor_name
                 FROM 
-                    sqss_data.location_x
+                    sqss_data.sensor_001
                 WHERE DATE(insert_date) = '{start_date_query}'
                 ORDER BY insert_date DESC;
                 '''
@@ -79,12 +79,14 @@ def plot_data(df, lowerLimit, upperLimit):
     return (layer).interactive()
 
 def main():
-    st.title('AniTech SQSS Data Plot')
+    st.title('MKP Data Plot')
 
     st.text("")
 
     today_date = datetime.today().strftime('%Y-%m-%d')
     read_data = query_data_day(today_date)
+    # read_data = pd.read_csv('sqss_data.csv')
+    read_data['insert_date'] = pd.to_datetime(read_data['insert_date'])
     read_data['hour'] = read_data['insert_date'].dt.hour
     grouped_df = read_data.groupby(by='hour').mean().reset_index()
     dataframe = grouped_df.melt(id_vars=["hour"], 
