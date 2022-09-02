@@ -8,7 +8,7 @@ import altair as alt
 import psycopg2
 from sqlalchemy import create_engine
 
-url = 'postgresql+psycopg2://dashboard_select:AVNS_hf_HkycGlpPX1osvfYX@db-postgresql-sgp1-32435-do-user-12241536-0.b.db.ondigitalocean.com:25060/mkp_data'
+url = url = 'postgresql+psycopg2://dashboard_select:AVNS_hf_HkycGlpPX1osvfYX@db-postgresql-sgp1-32435-do-user-12241536-0.b.db.ondigitalocean.com:25060/client_1'
 engine = create_engine(url)
 
 
@@ -23,7 +23,7 @@ def query_data_day(start_date_query):
                     humi,
                     sensor_name
                 FROM 
-                    sqss_data.sensor_001
+                    sqss_data.location_x
                 WHERE DATE(insert_date) = '{start_date_query}'
                 ORDER BY insert_date DESC;
                 '''
@@ -79,7 +79,7 @@ def plot_data(df, lowerLimit, upperLimit):
     return (layer).interactive()
 
 def main():
-    st.title('MKP Data Plot')
+    st.title('AniTech SQSS Data Plot')
 
     st.text("")
 
